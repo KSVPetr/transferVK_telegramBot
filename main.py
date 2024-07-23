@@ -18,52 +18,58 @@ dp = Dispatcher()
 async def start_bot(message: types.Message):
     await message.answer(f'Successfully loginned in VKontakte!')
     
-    for event in VkLongPoll(session).listen():
+    try:
+        for event in VkLongPoll(session).listen():
 
-        currTime = vfunc.get_current_time()
+            currTime = vfunc.get_current_time()
 
-        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
 
-            await message.answer(f'<b>[{currTime}] от {vfunc.get_username(event.user_id)}</b> : {event.message}')
+                await message.answer(f'<b>[{currTime}] от {vfunc.get_username(event.user_id)}</b> : {event.message}')
 
-            if vfunc.check_attachments(event):
+                if vfunc.check_attachments(event):
 
-                if (event.attachments.get('attach1_type') == 'photo'): 
-                    out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
-                    for count in range (0,len((out['items'])[0]['attachments'])):
-                        await message.answer_photo(f'{(out['items'])[0]['attachments'][count]['photo']['sizes'][-1]['url']}')
+                    if (event.attachments.get('attach1_type') == 'photo'): 
+                        out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
+                        for count in range (0,len((out['items'])[0]['attachments'])):
+                            await message.answer_photo(f'{(out['items'])[0]['attachments'][count]['photo']['sizes'][-1]['url']}')
 
-                elif (event.attachments.get('attach1_type') == 'doc'):
-                    out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
-                    await message.answer_audio(f'{out['items'][0]['attachments'][0]['audio_message']['link_mp3']}')
+                    elif (event.attachments.get('attach1_type') == 'doc'):
+                        out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
+                        await message.answer_audio(f'{out['items'][0]['attachments'][0]['audio_message']['link_mp3']}')
 
-                # Sticker # TO DO::
-                elif (event.attachments.get('attach1_type') == 'sticker'):
-                    await message.answer(f'Стикер')
+                    # Sticker # TO DO::
+                    elif (event.attachments.get('attach1_type') == 'sticker'):
+                        out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
+                        await message.answer_photo(f'{out['items'][0]['attachments'][0]['sticker']['images'][-1]['url']}')
 
-        elif event.type == VkEventType.MESSAGE_NEW and event.from_me:
+            elif event.type == VkEventType.MESSAGE_NEW and event.from_me:
 
-            await message.answer(f'<i>[{currTime}] Для {vfunc.get_username(event.user_id)}</i> : {event.message}')
-            
-            if vfunc.check_attachments:
+                await message.answer(f'<i>[{currTime}] Для {vfunc.get_username(event.user_id)}</i> : {event.message}')
+                
+                if vfunc.check_attachments:
 
-                if (event.attachments.get('attach1_type') == 'photo'):
-                    out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
-                    for count in range (0,len((out['items'])[0]['attachments'])):
-                        await message.answer_photo(f'{out['items'][0]['attachments'][count]['photo']['sizes'][-1]['url']}')
+                    if (event.attachments.get('attach1_type') == 'photo'):
+                        out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
+                        for count in range (0,len((out['items'])[0]['attachments'])):
+                            await message.answer_photo(f'{out['items'][0]['attachments'][count]['photo']['sizes'][-1]['url']}')
 
-                elif (event.attachments.get('attach1_type') == 'doc'):
-                    out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
-                    await message.answer_audio(f'{out['items'][0]['attachments'][0]['audio_message']['link_mp3']}')
-            
-                elif (event.attachments.get('attach1_type') == 'sticker'):
-                    await message.answer('Стикер')
-            
-        elif event.type == VkEventType.USER_TYPING:
-            await message.answer(f'[{currTime}] {vfunc.get_username(event.user_id)} печатает...')
+                    elif (event.attachments.get('attach1_type') == 'doc'):
+                        out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
+                        await message.answer_audio(f'{out['items'][0]['attachments'][0]['audio_message']['link_mp3']}')
+                
+                    elif (event.attachments.get('attach1_type') == 'sticker'):
+                        out = session.method('messages.getHistory', {'user_id' : event.user_id, 'count' : 1, 'extended' : 1})
+                        await message.answer_photo(f'{out['items'][0]['attachments'][0]['sticker']['images'][-1]['url']}')
+                
+            elif event.type == VkEventType.USER_TYPING:
+                await message.answer(f'[{currTime}] {vfunc.get_username(event.user_id)} печатает...')
 
-        elif event.type == VkEventType.USER_RECORDING_VOICE:
-            await message.answer(f'[{currTime}] {vfunc.get_username(event.user_id)} записывает аудио...')
+            elif event.type == VkEventType.USER_RECORDING_VOICE:
+                await message.answer(f'[{currTime}] {vfunc.get_username(event.user_id)} записывает аудио...')
+    except BaseException as error_message:
+        print(error_message)
+        start_bot()
 
 async def main():
 
